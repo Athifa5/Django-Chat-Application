@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{
+    margin: 0 auto;
+    max-width: 800px;
+    background-color:black;
+  }
+
+.container {
+  border: 2px solid #dedede;
+  background-color: black;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+  background-image: url('https://camo.githubusercontent.com/cba518ead87b032dc6f1cbfc7fade27604449201ac1baf34d889f77f093f01ac/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67');
+}
+
+.darker {
+  border-color: #ccc;
+  background-color:#16E896 ;
+  border-radius:25px;
+  width:50%;
+}
+
+h2{
+  color:white;
+}
+
+.you{
+  float:right;
+}
+</style>
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+</head>
+<body>
+<h2>Room Name : {{room}} <br> user : {{username}}</h2>
+
+<div id="display">
+
+
+
+</div>
+
+<script>
+$(document).ready(function(){
+
+setInterval(function(){
+    $.ajax({
+        type: 'GET',
+        url : "/getMessages/{{room}}/",
+        success: function(response){
+            console.log(response);
+            $("#display").empty();
+            for (var key in response.messages)
+            {
+              var date = new Date(response.messages[key].date);
+    
+              // Extract date components
+              var day = date.getDate();
+              var month = date.getMonth() + 1; // Months are zero-based, so we add 1
+              var year = date.getFullYear();
+              var hours = date.getUTCHours();
+              var minutes = date.getUTCMinutes();
+              
+              // Format the date and time
+              var formattedDate = (day < 10 ? '0' : '') + day + '-' + (month < 10 ? '0' : '') + month + '-' + year;
+              var formattedTime = (hours < 10 ? '0' : '') + hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+              
+               
+              // Assuming you have an input element with an id 'myInput'
+              var inputElement = document.getElementById('username');
+
+              // Get the value of the input element
+              var value = inputElement.value;
+
+
+
+              // Combine date and time
+              var formattedDateTime = formattedDate + ' ' + formattedTime;
+              if(response.messages[key].user== value){
+                var temp="<div class='container darker '><b>"+ response.messages[key].user+" (you)" + "</b><p>"+response.messages[key].value+"</p><span class='time-left'>"+formattedDateTime+"</span></div>";
+                $("#display").append(temp);
+              }else{
+                var temp="<div class='container darker'><b>"+response.messages[key].user  +" </b><p>"+response.messages[key].value+"</p><span class='time-left'>"+formattedDateTime+"</span></div>";
+                $("#display").append(temp);
+              }
+            }
+        },
+        error: function(response){
+            alert('An error occured')
+        }
+    });
+},1000);
+})
+</script>
+
+
+<div class="container">
+    <style>
+    input[type=text], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    }
+
+    input[type=submit] {
+    width: 100%;
+    background-color: #EE3C16;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    }
+
+    input[type=submit]:hover {
+    background-color: #45a049;
+    }
+
+    
+    </style>
+    
+    <form id="post-form">
+        {% csrf_token %}
+        <input type="hidden" name="username" id="username" value="{{username}}"/>
+        <input type="hidden" name="room_id" id="room_id" value="{{room_details.id}}"/>
+        <input type="text" name="message" id="message" width="100px" />
+        <input type="submit" value="Send">
+    </form>
+    <button id="myButton">Clear Chat</button>
+    <script>
+      const button = document.getElementById("myButton");
+      const div = document.getElementById("display");
+
+      button.addEventListener("click", function() {
+        div.style.display = "none";
+      });
+    </script>
+</div>
+</body>
+
+<script type="text/javascript">
+  $(document).on('submit','#post-form',function(e){
+    e.preventDefault();
+
+    $.ajax({
+      type:'POST',
+      url:'/send',
+      data:{
+          username:$('#username').val(),
+          room_id:$('#room_id').val(),
+          message:$('#message').val(),
+        csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+      },
+      success: function(data){
+         //alert(data)
+      }
+    });
+    document.getElementById('message').value = ''
+  });
+</script>
+<style>
+  footer{
+    color:white;
+    font-family: "Tamoha";
+    float:right;
+    padding-top:20px;
+  }
+</style>
+<footer>&copy; Copyright 2024 Athifa Shaik</footer>
+</html>
